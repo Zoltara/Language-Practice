@@ -2,12 +2,20 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Feedback, VocabularyPracticeTarget, PronunciationFeedback, Language } from '../types';
 
+
+
+
 const getAI = () => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("VITE_GEMINI_API_KEY is not set");
   }
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  return new GoogleGenAI({ apiKey });
 };
+
+
 
 const RANDOM_THEMES = [
   "Daily routine and morning habits",
