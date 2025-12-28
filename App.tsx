@@ -264,7 +264,7 @@ const App: React.FC = () => {
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <BookOpenIcon className="w-6 h-6 md:w-8 md:h-8 text-cyan-400" />
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-violet-500 text-transparent bg-clip-text">
+                <h1 className="text-xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-violet-500 text-transparent bg-clip-text">
                   Language Practice
                 </h1>
               </div>
@@ -277,7 +277,7 @@ const App: React.FC = () => {
         </div>
       </div>
       <footer className="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-700/50 z-40">
-        <div className="max-w-2xl mx-auto p-3 flex justify-center items-center gap-10">
+        <div className="max-w-2xl mx-auto p-3 flex justify-center items-center gap-6 md:gap-12">
             <button 
                 onClick={resetLanguage}
                 className="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-cyan-400 transition-colors"

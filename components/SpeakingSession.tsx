@@ -190,7 +190,6 @@ const SpeakingSession: React.FC<SpeakingSessionProps> = ({
   }
 
   const isWordSaved = currentTarget ? dictionary.some(item => item.word === currentTarget.word) : false;
-
   const displayScore = feedback ? Math.round(feedback.score <= 1 ? feedback.score * 100 : feedback.score) : 0;
 
   return (
@@ -199,41 +198,39 @@ const SpeakingSession: React.FC<SpeakingSessionProps> = ({
         <ProgressBar current={progressCount} total={totalItems} label="Item" />
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <p className="text-sm text-slate-400">Speak &bull; {language}</p>
-          <h2 className="text-2xl font-semibold text-violet-400">{topic}</h2>
-        </div>
+      <div className="mb-6">
+        <p className="text-sm text-slate-400">Speak &bull; {language}</p>
+        <h2 className="text-xl md:text-2xl font-semibold text-violet-400 truncate max-w-[200px] md:max-w-none">{topic}</h2>
       </div>
 
-      <div className="text-center space-y-8 min-h-[350px] flex flex-col justify-center">
+      <div className="text-center space-y-6 md:space-y-8 min-h-[350px] flex flex-col justify-center">
         {!currentTarget ? (
-           <div className="text-slate-400 text-lg">Preparing...</div>
+           <div className="text-slate-400 text-base md:text-lg">Preparing...</div>
         ) : (
           <>
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               <h3 
-                className={`text-6xl md:text-7xl ${langFont} font-bold text-slate-100`}
+                className={`text-4xl md:text-7xl ${langFont} font-bold text-slate-100`}
                 dir={isRTL ? "rtl" : "ltr"}
               >
                 {currentTarget.word}
               </h3>
-              <p className="text-2xl md:text-3xl font-medium text-cyan-400">{currentTarget.phonetic}</p>
-              <p className="text-lg md:text-xl text-slate-400 whitespace-pre-line">{currentTarget.english}</p>
+              <p className="text-xl md:text-3xl font-medium text-cyan-400">{currentTarget.phonetic}</p>
+              <p className="text-base md:text-xl text-slate-400 whitespace-pre-line">{currentTarget.english}</p>
             </div>
 
-            <div className="flex justify-center gap-12 items-center">
+            <div className="flex justify-center gap-8 md:gap-12 items-center">
               <button
                 onClick={isRecording ? handleStopRecording : handleStartRecording}
                 disabled={isProcessing || isAudioLoading}
-                className={`flex flex-col items-center gap-3 group transition-all transform ${isRecording ? 'scale-110' : 'hover:scale-105'}`}
+                className={`flex flex-col items-center gap-2 md:gap-3 group transition-all transform ${isRecording ? 'scale-110' : 'hover:scale-105'}`}
               >
-                <div className={`p-8 rounded-full shadow-xl transition-all ${
+                <div className={`p-6 md:p-8 rounded-full shadow-xl transition-all ${
                   isRecording ? 'bg-red-500 animate-pulse ring-4 ring-red-500/30' : 'bg-violet-500 hover:bg-violet-600'
                 }`}>
-                  {isRecording ? <StopIcon className="w-10 h-10 text-white" /> : <MicrophoneIcon className="w-10 h-10 text-white" />}
+                  {isRecording ? <StopIcon className="w-8 h-8 md:w-10 md:h-10 text-white" /> : <MicrophoneIcon className="w-8 h-8 md:w-10 md:h-10 text-white" />}
                 </div>
-                <span className="text-sm text-slate-400 font-semibold uppercase tracking-wider">
+                <span className="text-[10px] md:text-sm text-slate-400 font-semibold uppercase tracking-wider">
                   {isRecording ? 'Stop' : 'Record'}
                 </span>
               </button>
@@ -241,72 +238,74 @@ const SpeakingSession: React.FC<SpeakingSessionProps> = ({
               <button
                 onClick={handleListen}
                 disabled={isAudioLoading || isRecording}
-                className="flex flex-col items-center gap-3 group"
+                className="flex flex-col items-center gap-2 md:gap-3 group"
                 title="Listen"
               >
-                <div className="p-5 rounded-full bg-slate-700 hover:bg-slate-600 transition-all shadow-lg group-disabled:opacity-50">
-                   {isAudioLoading ? <div className="w-7 h-7 border-2 border-slate-300 border-t-transparent rounded-full animate-spin" /> : <SpeakerIcon className="w-7 h-7 text-slate-200" />}
+                <div className="p-4 md:p-5 rounded-full bg-slate-700 hover:bg-slate-600 transition-all shadow-lg">
+                   {isAudioLoading ? <div className="w-6 h-6 md:w-7 md:h-7 border-2 border-slate-300 border-t-transparent rounded-full animate-spin" /> : <SpeakerIcon className="w-6 h-6 md:w-7 md:h-7 text-slate-200" />}
                 </div>
-                <span className="text-sm text-slate-400 font-semibold uppercase tracking-wider">Listen</span>
+                <span className="text-[10px] md:text-sm text-slate-400 font-semibold uppercase tracking-wider">Listen</span>
               </button>
             </div>
 
-            {error && <p className="text-red-400 text-base animate-fade-in">{error}</p>}
+            {error && <p className="text-red-400 text-sm md:text-base animate-fade-in">{error}</p>}
 
             {feedback ? (
-              <div className="bg-slate-900/50 rounded-xl p-8 border border-slate-700 animate-fade-in-up">
+              <div className="bg-slate-900/50 rounded-xl p-4 md:p-8 border border-slate-700 animate-fade-in-up">
                 {!feedback.isHelpReveal && feedback.score > 0 && (
-                  <div className="flex flex-col items-center mb-6">
-                    <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mb-2">Score</span>
-                    <div className={`text-5xl font-extrabold ${getScoreColor(feedback.score)}`}>
+                  <div className="flex flex-col items-center mb-4 md:mb-6">
+                    <span className="text-slate-400 text-[10px] md:text-sm uppercase tracking-wider font-bold mb-1">Score</span>
+                    <div className={`text-3xl md:text-5xl font-extrabold ${getScoreColor(feedback.score)}`}>
                       {displayScore}/100
                     </div>
                   </div>
                 )}
                 
-                <div className="text-left space-y-4">
-                    <div className={`p-4 bg-slate-800/50 rounded-lg border-l-4 ${feedback.isHelpReveal ? 'border-red-500' : 'border-violet-500'}`}>
-                        <h4 className={`text-lg font-bold mb-1 ${getHeaderColorClass()}`}>
+                <div className="text-left space-y-3 md:space-y-4">
+                    <div className={`p-3 md:p-4 bg-slate-800/50 rounded-lg border-l-4 ${feedback.isHelpReveal ? 'border-red-500' : 'border-violet-500'}`}>
+                        <h4 className={`text-base md:text-lg font-bold mb-1 ${getHeaderColorClass()}`}>
                           {getHeaderText()}
                         </h4>
-                        <p className="text-slate-300 text-base md:text-lg whitespace-pre-line">{feedback.feedback}</p>
+                        <p className="text-slate-300 text-sm md:text-lg whitespace-pre-line">{feedback.feedback}</p>
                     </div>
-                    <div className="p-4 bg-slate-800/50 rounded-lg border-l-4 border-cyan-500">
-                         <span className="text-xs font-bold text-cyan-400 block mb-1 uppercase tracking-widest">TIP</span>
-                        <p className="text-slate-300 text-base md:text-lg whitespace-pre-line">{feedback.tips}</p>
-                    </div>
+                    {feedback.tips && (
+                      <div className="p-3 md:p-4 bg-slate-800/50 rounded-lg border-l-4 border-cyan-500">
+                           <span className="text-[10px] font-bold text-cyan-400 block mb-1 uppercase tracking-widest">TIP</span>
+                          <p className="text-slate-300 text-sm md:text-lg whitespace-pre-line">{feedback.tips}</p>
+                      </div>
+                    )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                <div className="flex flex-col sm:flex-row gap-3 mt-6 md:mt-8">
                     <button
                         onClick={() => onToggleDictionaryWord({ word: currentTarget.word, english: currentTarget.english })}
-                        className={`flex-1 py-4 px-6 rounded-lg font-bold text-lg transition-all ${
+                        className={`flex-1 py-3 md:py-4 px-6 rounded-lg font-bold text-base md:text-lg transition-all ${
                           isWordSaved ? 'bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/20' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'
                         }`}
                     >
-                        {isWordSaved ? 'Saved to Dictionary' : 'Save to my Dictionary'}
+                        {isWordSaved ? 'Saved' : 'Save Word'}
                     </button>
                     <button
                         onClick={handleNext}
-                        className="flex-1 py-4 px-6 rounded-lg bg-violet-500 hover:bg-violet-600 text-white font-bold text-lg transition-colors shadow-lg shadow-violet-500/20"
+                        className="flex-1 py-3 md:py-4 px-6 rounded-lg bg-violet-500 hover:bg-violet-600 text-white font-bold text-base md:text-lg transition-colors shadow-lg shadow-violet-500/20"
                     >
                         Next
                     </button>
                 </div>
               </div>
             ) : (
-              <div className="pt-4 flex justify-center gap-3">
+              <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
                 <button
                   onClick={handleSkip}
-                  className="px-6 py-3 rounded-lg border-2 border-slate-700 hover:border-slate-600 hover:bg-slate-700/50 text-slate-400 font-bold text-base transition-all"
+                  className="px-6 py-2.5 md:py-3 rounded-lg border-2 border-slate-700 hover:border-slate-600 text-slate-400 font-bold text-sm md:text-base transition-all"
                 >
                   Skip
                 </button>
                 <button
                   onClick={handleHelp}
-                  className="px-6 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-slate-200 font-bold text-base transition-all"
+                  className="px-6 py-2.5 md:py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-slate-200 font-bold text-sm md:text-base transition-all"
                 >
-                  Help me (Show Tips)
+                  Help (Show Tips)
                 </button>
               </div>
             )}

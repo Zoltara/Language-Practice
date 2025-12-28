@@ -139,102 +139,104 @@ const VocabularySession: React.FC<VocabularySessionProps> = ({
 
       <div className="mb-6">
         <p className="text-sm text-slate-400">Vocab &bull; {language}</p>
-        <h2 className="text-2xl font-semibold text-emerald-400">{topic}</h2>
+        <h2 className="text-xl md:text-2xl font-semibold text-emerald-400 truncate max-w-[200px] md:max-w-none">{topic}</h2>
       </div>
 
-      <div className="space-y-8 min-h-[400px] flex flex-col">
+      <div className="space-y-6 md:space-y-8 min-h-[400px] flex flex-col">
         {!currentTarget ? (
-          <div className="flex-grow flex items-center justify-center text-slate-400 text-xl">Preparing...</div>
+          <div className="flex-grow flex items-center justify-center text-slate-400 text-lg md:text-xl">Preparing...</div>
         ) : (
           <>
-            <div className="bg-slate-900/60 p-10 rounded-2xl border border-slate-700 text-center shadow-inner relative group">
-              <div className="absolute top-4 right-4 flex gap-2">
+            <div className="bg-slate-900/60 p-6 md:p-10 rounded-2xl border border-slate-700 text-center shadow-inner relative group">
+              <div className="absolute top-2 right-2 md:top-4 md:right-4 flex gap-2">
                 <button
                   onClick={handleListen}
                   disabled={isAudioLoading || isProcessing}
-                  className="p-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-all disabled:opacity-50"
+                  className="p-2 md:p-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-all disabled:opacity-50"
                   title="Listen"
                 >
-                  {isAudioLoading ? <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <SpeakerIcon className="w-5 h-5" />}
+                  {isAudioLoading ? <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <SpeakerIcon className="w-4 h-4 md:w-5 md:h-5" />}
                 </button>
               </div>
               <h3 
-                className={`text-6xl md:text-8xl ${langFont} font-bold text-slate-100 mb-4`}
+                className={`text-5xl md:text-8xl ${langFont} font-bold text-slate-100 mb-2 md:mb-4`}
                 dir={isRTL ? "rtl" : "ltr"}
               >
                 {currentTarget.word}
               </h3>
               {feedback && (
-                <p className="text-2xl font-medium text-cyan-400 animate-fade-in">{currentTarget.phonetic}</p>
+                <p className="text-xl md:text-2xl font-medium text-cyan-400 animate-fade-in">{currentTarget.phonetic}</p>
               )}
             </div>
 
-            <div className="space-y-4">
-              <label className="block text-lg font-semibold text-slate-400 ml-1">
-                Translate to English:
+            <div className="space-y-2 md:space-y-4">
+              <label className="block text-sm md:text-lg font-semibold text-slate-400 ml-1">
+                {language === 'Hebrew' ? 'Translate to English or Thai:' : 'Translate to English:'}
               </label>
               <input
                 type="text"
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
                 disabled={!!feedback || isProcessing}
-                placeholder="Meaning..."
-                className="w-full bg-slate-700/50 border-2 border-slate-600 rounded-xl p-5 text-xl md:text-2xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                placeholder={language === 'Hebrew' ? "Meaning in English or Thai..." : "Meaning in English..."}
+                className="w-full bg-slate-700/50 border-2 border-slate-600 rounded-xl p-3 md:p-5 text-lg md:text-2xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
                 onKeyDown={(e) => e.key === 'Enter' && handleCheck()}
               />
             </div>
 
             {feedback && (
-              <div className={`p-6 rounded-xl border-l-4 animate-fade-in-up ${feedback.isCorrect ? 'bg-green-900/20 border-green-500' : (feedback.isHelpReveal ? 'bg-red-900/20 border-red-500' : 'bg-yellow-900/20 border-yellow-500')}`}>
-                <h4 className={`text-xl font-bold mb-2 ${getHeaderColor()}`}>
+              <div className={`p-5 md:p-6 rounded-xl border-l-4 animate-fade-in-up ${feedback.isCorrect ? 'bg-green-900/20 border-green-500' : (feedback.isHelpReveal ? 'bg-red-900/20 border-red-500' : 'bg-yellow-900/20 border-yellow-500')}`}>
+                <h4 className={`text-lg md:text-xl font-bold mb-1 md:mb-2 ${getHeaderColor()}`}>
                   {getHeaderText()}
                 </h4>
-                <p className="text-slate-200 text-lg mb-4">{feedback.feedback}</p>
-                <div className="bg-slate-800/50 p-4 rounded-lg">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Correct Meaning</span>
-                  <span className="text-xl text-emerald-400 font-bold whitespace-pre-line">{feedback.correctMeaning}</span>
+                <p className="text-slate-200 text-base md:text-lg mb-3 md:mb-4">{feedback.feedback}</p>
+                <div className="bg-slate-800/50 p-3 md:p-4 rounded-lg">
+                  <span className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Correct Meaning</span>
+                  <span className="text-lg md:text-xl text-emerald-400 font-bold whitespace-pre-line">{feedback.correctMeaning}</span>
                 </div>
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <div className="flex flex-col gap-3 pt-2">
               {feedback ? (
-                <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     onClick={() => onToggleDictionaryWord({ word: currentTarget.word, english: feedback.correctMeaning })}
-                    className={`flex-1 py-5 px-8 rounded-xl font-bold text-xl transition-all ${
+                    className={`py-3 md:py-5 px-6 rounded-xl font-bold text-base md:text-xl transition-all ${
                       isWordSaved ? 'bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/20' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'
                     }`}
                   >
-                    {isWordSaved ? 'Saved to Dictionary' : 'Save to my Dictionary'}
+                    {isWordSaved ? 'Saved' : 'Save to Dictionary'}
                   </button>
                   <button
                     onClick={() => { onNext(); fetchNewWord(); }}
-                    className="flex-1 py-5 px-8 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl transition-all shadow-lg shadow-emerald-500/20"
+                    className="py-3 md:py-5 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base md:text-xl transition-all shadow-lg shadow-emerald-500/20"
                   >
                     Next
                   </button>
-                </>
+                </div>
               ) : (
-                <div className="flex gap-3 w-full">
-                  <button
-                    onClick={handleSkip}
-                    disabled={isProcessing}
-                    className="px-8 py-5 rounded-xl border-2 border-slate-700 hover:border-slate-600 hover:bg-slate-700/50 text-slate-400 font-bold text-xl transition-all disabled:opacity-50"
-                  >
-                    Skip
-                  </button>
-                  <button
-                    onClick={handleHelp}
-                    disabled={isProcessing}
-                    className="px-8 py-5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold text-xl transition-all disabled:opacity-50"
-                  >
-                    Help me
-                  </button>
+                <div className="flex flex-col gap-3">
+                   <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={handleSkip}
+                      disabled={isProcessing}
+                      className="py-3 md:py-4 rounded-xl border-2 border-slate-700 hover:border-slate-600 text-slate-400 font-bold text-base md:text-xl transition-all"
+                    >
+                      Skip
+                    </button>
+                    <button
+                      onClick={handleHelp}
+                      disabled={isProcessing}
+                      className="py-3 md:py-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold text-base md:text-xl transition-all"
+                    >
+                      Help me
+                    </button>
+                   </div>
                   <button
                     onClick={handleCheck}
                     disabled={isProcessing || !userAnswer.trim()}
-                    className="flex-grow py-5 px-8 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl transition-all disabled:opacity-50"
+                    className="w-full py-3 md:py-5 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base md:text-xl transition-all shadow-lg shadow-emerald-500/20"
                   >
                     {isProcessing ? 'Checking...' : 'Check Translation'}
                   </button>

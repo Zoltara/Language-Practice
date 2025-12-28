@@ -2,9 +2,6 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Feedback, VocabularyPracticeTarget, PronunciationFeedback, Language } from '../types';
 
-
-
-
 const getAI = () => {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -14,8 +11,6 @@ const getAI = () => {
 
   return new GoogleGenAI({ apiKey });
 };
-
-
 
 const RANDOM_THEMES = [
   "Daily routine and morning habits",
@@ -88,14 +83,17 @@ export const generateParagraph = async (topic: string, language: Language, previ
 export const checkTranslation = async (targetText: string, userTranslation: string, language: Language): Promise<Feedback> => {
   try {
     const ai = getAI();
-    // Special instruction for Hebrew to include Thai translation on a NEW LINE
-    const languageInstruction = language === 'Hebrew' 
-      ? `Language: Hebrew. Provide translations in English, followed by a newline character (\n), then the Thai translation.` 
-      : `Language: ${language}.`;
+    const isHebrew = language === 'Hebrew';
+    const languageInstruction = isHebrew
+      ? `Language: Hebrew. The student may answer in either English or Thai. Verify their understanding. For the 'correctTranslation' and vocabulary 'english' fields, follow this EXACT format:
+      [English Translation]
+      [Thai Translation]
+      Do NOT put Thai on the same line as English. Do NOT repeat the Thai translation.` 
+      : `Language: ${language}. Student is translating to English.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `${languageInstruction}\nTarget Text: "${targetText}"\nStudent's English Translation: "${userTranslation}"\nCheck correctness and extract 3-5 vocab items from the text.`,
+      contents: `${languageInstruction}\nTarget Text: "${targetText}"\nStudent's Input: "${userTranslation}"\nCheck correctness and extract 3-5 vocab items from the text.`,
       config: {
         thinkingConfig: { thinkingBudget: 0 },
         responseMimeType: "application/json",
@@ -104,14 +102,14 @@ export const checkTranslation = async (targetText: string, userTranslation: stri
           properties: {
             isCorrect: { type: Type.BOOLEAN },
             feedback: { type: Type.STRING },
-            correctTranslation: { type: Type.STRING, description: "The translation. If Hebrew, put English and Thai on separate lines using \\n." },
+            correctTranslation: { type: Type.STRING, description: "If Hebrew, format as 'English\\nThai'. Use exactly one Thai translation." },
             vocabulary: {
               type: Type.ARRAY,
               items: {
                 type: Type.OBJECT,
                 properties: {
                   word: { type: Type.STRING, description: `The ${language} word in its native script` },
-                  english: { type: Type.STRING, description: `The meaning. If Hebrew, English and Thai must be on separate lines using \\n.` }
+                  english: { type: Type.STRING, description: `The meaning. If Hebrew, format as 'English\\nThai'.` }
                 },
                 required: ["word", "english"]
               }
@@ -132,13 +130,14 @@ export const checkTranslation = async (targetText: string, userTranslation: stri
 export const checkWordTranslation = async (targetWord: string, userTranslation: string, language: Language): Promise<{ isCorrect: boolean, feedback: string, correctMeaning: string }> => {
   try {
     const ai = getAI();
-    const languageInstruction = language === 'Hebrew' 
-      ? `Language: Hebrew. Correct meaning should include English, then a newline (\\n), then Thai.` 
-      : `Language: ${language}.`;
+    const isHebrew = language === 'Hebrew';
+    const languageInstruction = isHebrew
+      ? `Language: Hebrew. The student may answer in either English or Thai. Provide the correct meaning as: English meaning, then a newline (\\n), then the Thai meaning. Do NOT repeat the Thai translation.` 
+      : `Language: ${language}. Student is translating to English.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `${languageInstruction}\nEvaluate word "${targetWord}" vs English translation "${userTranslation}".`,
+      contents: `${languageInstruction}\nEvaluate word "${targetWord}" vs student input "${userTranslation}".`,
       config: {
         thinkingConfig: { thinkingBudget: 0 },
         responseMimeType: "application/json",
@@ -147,7 +146,7 @@ export const checkWordTranslation = async (targetWord: string, userTranslation: 
           properties: {
             isCorrect: { type: Type.BOOLEAN },
             feedback: { type: Type.STRING },
-            correctMeaning: { type: Type.STRING, description: `The meaning. If Hebrew, English and Thai on separate lines using \\n.` }
+            correctMeaning: { type: Type.STRING, description: `The meaning. If Hebrew, format as 'English\\nThai'.` }
           },
           required: ["isCorrect", "feedback", "correctMeaning"]
         }
@@ -164,10 +163,7 @@ export const checkWordTranslation = async (targetWord: string, userTranslation: 
 export const generateSpeech = async (text: string, language: Language): Promise<string> => {
   try {
     const ai = getAI();
-    // Puck for Hebrew, Kore for Thai.
     const voiceName = language === 'Thai' ? 'Kore' : 'Puck';
-    
-    // We use a more explicit instruction to force the model into audio modality.
     const prompt = `Please say the following ${language} text clearly and naturally: ${text}`;
 
     const response = await ai.models.generateContent({
@@ -184,35 +180,24 @@ export const generateSpeech = async (text: string, language: Language): Promise<
     });
     
     if (!response.candidates || response.candidates.length === 0) {
-      throw new Error("The AI model returned no results. This might be due to safety filters or a temporary issue.");
+      throw new Error("The AI model returned no results.");
     }
 
     const candidate = response.candidates[0];
-    
-    // Defensive check for candidate content
     if (!candidate.content || !candidate.content.parts) {
-      // Sometimes responses are blocked for safety reasons (e.g. if the model hallucinates something inappropriate)
       const finishReason = (candidate as any).finishReason || "UNKNOWN";
       throw new Error(`The model failed to generate speech content. Reason: ${finishReason}`);
     }
 
-    // Iterate through all parts to find the inlineData containing audio.
     for (const part of candidate.content.parts) {
       if (part.inlineData && part.inlineData.data) {
         return part.inlineData.data;
       }
     }
 
-    // If we have text but no audio, the model decided to chat instead of speak
-    const textPart = candidate.content.parts.find(p => p.text);
-    if (textPart) {
-      throw new Error(`The model returned text instead of audio: "${textPart.text.substring(0, 50)}..."`);
-    }
-
     throw new Error("The API response did not contain any audio data.");
   } catch (error: any) {
     console.error("Error generating speech:", error);
-    // Return a more user-friendly message if possible
     throw new Error(error.message || "Speech generation failed.");
   }
 };
@@ -227,13 +212,12 @@ export const generatePracticeWord = async (topic: string, language: Language, pr
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Generate exactly one unique, high-frequency everyday word or very common phrase in ${language} for the topic: ${chosenTheme}.
+      contents: `Generate exactly one unique, high-frequency everyday word or common phrase in ${language} for the topic: ${chosenTheme}.
       
       CRITICAL: 
-      1. Choose words that are essential for basic daily conversation.
-      2. The 'word' field MUST be in ${language} script only.
-      3. If Hebrew: You MUST include niqqud (vowels) in the 'word' field. Also provide Thai translation in the 'english' field on a separate line using \\n.
-      4. Provide a clear phonetic guide in latin characters in the 'phonetic' field.
+      1. Essential for basic daily conversation.
+      2. If Hebrew: You MUST include niqqud. Format 'english' field as 'English meaning\\nThai meaning'. Do NOT repeat the Thai translation.
+      3. The 'word' field MUST be in native script only.
       
       Random Seed: ${salt}
       ${previousWord ? `MUST be different from: ${previousWord}` : ''}`,
@@ -243,9 +227,9 @@ export const generatePracticeWord = async (topic: string, language: Language, pr
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            word: { type: Type.STRING, description: `The common word in ${language} native script` },
+            word: { type: Type.STRING, description: `The common word in native script` },
             phonetic: { type: Type.STRING },
-            english: { type: Type.STRING, description: `Meaning. If Hebrew, English and Thai on separate lines using \\n.` }
+            english: { type: Type.STRING, description: `Meaning. If Hebrew, format as 'English\\nThai'.` }
           },
           required: ["word", "phonetic", "english"]
         }
@@ -267,7 +251,7 @@ export const evaluatePronunciation = async (targetWord: string, audioBase64: str
       contents: {
         parts: [
           { inlineData: { mimeType, data: audioBase64 } },
-          { text: `Evaluate the pronunciation of the ${language} word: "${targetWord}". Provide specific feedback on tones (if Thai) or vowels/accents (if Hebrew). 
+          { text: `Evaluate the pronunciation of the ${language} word: "${targetWord}". 
           IMPORTANT: Return the score as an INTEGER between 0 and 100.` }
         ]
       },
@@ -277,7 +261,7 @@ export const evaluatePronunciation = async (targetWord: string, audioBase64: str
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            score: { type: Type.NUMBER, description: "Pronunciation score from 0 to 100." },
+            score: { type: Type.NUMBER, description: "Score from 0 to 100." },
             feedback: { type: Type.STRING },
             tips: { type: Type.STRING }
           },
@@ -289,6 +273,6 @@ export const evaluatePronunciation = async (targetWord: string, audioBase64: str
     return JSON.parse(response.text);
   } catch (error) {
     console.error("Error evaluating pronunciation:", error);
-    throw new Error("Pronunciation evaluation failed.");
+    throw new Error("Evaluation failed.");
   }
 };
